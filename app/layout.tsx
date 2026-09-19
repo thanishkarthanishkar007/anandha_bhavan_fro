@@ -43,6 +43,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={outfit.variable}>
+      <head>
+        <link
+          rel="preload"
+          as="image"
+          href="/images/food/ezgif-frame-001.webp"
+          type="image/webp"
+          fetchPriority="high"
+        />
+      </head>
       <body className="bg-warm-white text-deep-green overflow-x-clip antialiased selection:bg-restaurant-green selection:text-cream">
         <RestaurantProvider>
           <LanguageProvider>

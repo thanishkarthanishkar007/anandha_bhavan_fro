@@ -82,6 +82,16 @@ body {
   box-shadow: 0 0 60px -10px rgba(79, 143, 36, 0.15);
 }
 
+/* Hardware Acceleration for Canvas & Smooth Scrolling */
+#hero-scroll {
+  contain: layout style;
+}
+
+canvas {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Accessibility: Respect Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,

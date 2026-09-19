@@ -5,15 +5,16 @@ import { useMotionValue, useReducedMotion } from 'framer-motion';
 import FoodTextOverlays from './FoodTextOverlays';
 
 const TOTAL_FRAMES = 40;
-const CONCURRENT_DOWNLOADS = 8;
+const CONCURRENT_DOWNLOADS = 4;
 
 export default function FoodScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<(HTMLImageElement | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const currentFrameRef = useRef<number>(0);
-  const rafIdRef = useRef<number | null>(null);
   const isMountedRef = useRef<boolean>(true);
+  const rafPendingRef = useRef<boolean>(false);
+  const layoutMetricsRef = useRef({ offsetTop: 0, scrollableDist: 1 });
 
   const [isFirstFrameLoaded, setIsFirstFrameLoaded] = useState<boolean>(false);
   const [loadPercent, setLoadPercent] = useState<number>(0);
@@ -38,7 +39,7 @@ export default function FoodScroll() {
           break;
         }
       }
-      // Only search forward within a tight window (up to 2 frames ahead) if at start and no backwards frame
+      // Only search forward within a tight window (up to 2 frames ahead) if at start
       if (!img) {
         for (let i = index + 1; i < Math.min(index + 3, TOTAL_FRAMES); i++) {
           if (imagesRef.current[i]?.complete && imagesRef.current[i]!.naturalWidth > 0) {
@@ -49,15 +50,14 @@ export default function FoodScroll() {
       }
     }
 
-    if (!img || !img.complete || img.naturalWidth === 0) return;
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      ctx.fillStyle = '#FFFDF5';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
 
     const width = canvas.width;
     const height = canvas.height;
-
-    // Fill warm cream base
-    ctx.fillStyle = '#FFFDF5';
-    ctx.fillRect(0, 0, width, height);
-
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
 
@@ -74,22 +74,22 @@ export default function FoodScroll() {
     ctx.drawImage(img, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, drawWidth, drawHeight);
   }, []);
 
+  // Frame-locked render loop using RAF throttling
   const requestRender = useCallback(() => {
-    if (rafIdRef.current !== null) {
-      cancelAnimationFrame(rafIdRef.current);
-    }
-    rafIdRef.current = requestAnimationFrame(() => {
+    if (rafPendingRef.current) return;
+    rafPendingRef.current = true;
+    requestAnimationFrame(() => {
+      rafPendingRef.current = false;
       drawFrame(currentFrameRef.current);
     });
   }, [drawFrame]);
 
-  // Adjust canvas resolution for window size and device pixel ratio (edge-to-edge)
+  // Adjust canvas resolution with high performance DPR cap (max 1.5)
   const updateCanvasSize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2);
-    // Use window.innerWidth and window.innerHeight for true full-bleed coverage
+    const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.5);
     const targetWidth = Math.floor(window.innerWidth * dpr);
     const targetHeight = Math.floor(window.innerHeight * dpr);
 
@@ -100,7 +100,15 @@ export default function FoodScroll() {
     }
   }, [requestRender]);
 
-  // Fast Concurrent Image Preloader for 40 High-Quality Frames
+  // Cache layout metrics to avoid calling getBoundingClientRect() during scroll
+  const updateLayoutMetrics = useCallback(() => {
+    if (!containerRef.current) return;
+    const offsetTop = containerRef.current.offsetTop;
+    const scrollableDist = Math.max(1, containerRef.current.offsetHeight - window.innerHeight);
+    layoutMetricsRef.current = { offsetTop, scrollableDist };
+  }, []);
+
+  // Lightning-fast lightweight WebP Preloader with Async GPU Decode
   useEffect(() => {
     isMountedRef.current = true;
     let loadedCount = 0;
@@ -113,9 +121,16 @@ export default function FoodScroll() {
 
         const pad = String(index + 1).padStart(3, '0');
         const img = new Image();
-        img.src = `/images/food/ezgif-frame-${pad}.jpg`;
+        img.src = `/images/food/ezgif-frame-${pad}.webp`;
 
-        img.onload = () => {
+        img.onload = async () => {
+          if ('decode' in img) {
+            try {
+              await img.decode();
+            } catch {
+              // Ignore decode fallback
+            }
+          }
           if (!isMountedRef.current) return resolve();
           imagesRef.current[index] = img;
           loadedCount++;
@@ -131,9 +146,17 @@ export default function FoodScroll() {
         };
 
         img.onerror = () => {
+          // Fallback to optimized progressive JPEG
           const fallback = new Image();
-          fallback.src = `/images/food/${index + 1}.jpg`;
-          fallback.onload = () => {
+          fallback.src = `/images/food/ezgif-frame-${pad}.jpg`;
+          fallback.onload = async () => {
+            if ('decode' in fallback) {
+              try {
+                await fallback.decode();
+              } catch {
+                // Ignore
+              }
+            }
             if (!isMountedRef.current) return resolve();
             imagesRef.current[index] = fallback;
             loadedCount++;
@@ -151,14 +174,12 @@ export default function FoodScroll() {
       });
     };
 
-    // Load Frame 001 and Frame 040 immediately
-    loadSingleImage(0);
-    loadSingleImage(TOTAL_FRAMES - 1);
-
-    // Concurrent pool loader for remaining frames 002 to 039
-    const loadAllFrames = async () => {
+    // 1. Prioritize immediate frame 0 for instant visual display
+    loadSingleImage(0).then(() => {
+      if (!isMountedRef.current) return;
+      // 2. Sequential worker pool for remaining frames 1 to 39
       const queue: number[] = [];
-      for (let i = 1; i < TOTAL_FRAMES - 1; i++) {
+      for (let i = 1; i < TOTAL_FRAMES; i++) {
         queue.push(i);
       }
 
@@ -172,29 +193,31 @@ export default function FoodScroll() {
         }
       });
 
-      await Promise.all(workers);
-    };
-
-    loadAllFrames();
+      Promise.all(workers);
+    });
 
     return () => {
       isMountedRef.current = false;
     };
   }, [requestRender]);
 
-  // Setup canvas size and window resize listener
+  // Setup canvas size, layout metrics, and window resize listener
   useEffect(() => {
     updateCanvasSize();
+    updateLayoutMetrics();
+
     const handleResize = () => {
       updateCanvasSize();
+      updateLayoutMetrics();
     };
+
     window.addEventListener('resize', handleResize, { passive: true });
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [updateCanvasSize]);
+  }, [updateCanvasSize, updateLayoutMetrics]);
 
-  // Direct, Bulletproof Scroll Engine
+  // Zero-Reflow Native Passive Scroll Listener
   useEffect(() => {
     if (shouldReduceMotion) {
       currentFrameRef.current = TOTAL_FRAMES - 1;
@@ -203,15 +226,14 @@ export default function FoodScroll() {
     }
 
     const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const scrollableDist = containerRef.current.offsetHeight - window.innerHeight;
-      if (scrollableDist <= 0) return;
-
-      const scrolled = -rect.top;
+      const { offsetTop, scrollableDist } = layoutMetricsRef.current;
+      const scrolled = window.scrollY - offsetTop;
       const progress = Math.min(1, Math.max(0, scrolled / scrollableDist));
 
-      scrollProgress.set(progress);
+      // Only dispatch motion value when hero text is transitioning to prevent unnecessary re-renders
+      if (progress <= 0.12 || Math.abs(scrollProgress.get() - progress) > 0.04) {
+        scrollProgress.set(progress);
+      }
 
       const targetIndex = Math.min(
         TOTAL_FRAMES - 1,
@@ -229,9 +251,6 @@ export default function FoodScroll() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-      }
     };
   }, [shouldReduceMotion, scrollProgress, requestRender]);
 
