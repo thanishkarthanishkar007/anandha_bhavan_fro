@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-restaurant-green: #4F8F24;
+  --color-fresh-green: #78B82A;
+  --color-deep-green: #173D19;
+  --color-restaurant-yellow: #F4C430;
+  --color-golden-yellow: #E7AE12;
+  --color-cream: #FFFBEA;
+  --color-warm-white: #FFFEF5;
+  --color-leaf-green: #2F6B20;
+}
+
+html {
+  background-color: var(--color-warm-white);
+  color: var(--color-deep-green);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-warm-white);
+  color: var(--color-deep-green);
+  overflow-x: clip;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Selection Highlight */
+::selection {
+  background-color: var(--color-restaurant-green);
+  color: var(--color-cream);
+}
+
+/* Modern Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-warm-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9DAB6;
+  border-radius: 9999px;
+  border: 2px solid var(--color-warm-white);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-restaurant-green);
+}
+
+/* Subtle Cinematic Steam & Glow */
+@keyframes subtleSteam {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.04);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(-16px) scale(1.08);
+    opacity: 0;
+  }
+}
+
+.animate-steam-slow {
+  animation: subtleSteam 6s ease-in-out infinite;
+}
+
+.glow-warm-ambient {
+  box-shadow: 0 0 60px -10px rgba(244, 196, 48, 0.15);
+}
+
+.glow-leaf-ambient {
+  box-shadow: 0 0 60px -10px rgba(79, 143, 36, 0.15);
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
