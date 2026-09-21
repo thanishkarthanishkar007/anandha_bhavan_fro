@@ -6,7 +6,6 @@ import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import MenuCard from '@/components/MenuCard';
 import SectionReveal from '@/components/SectionReveal';
-import OrderSection from '@/components/OrderSection';
 import { MENU_ITEMS, CATEGORIES, MenuItem } from '@/data/menu';
 import { MENU_ITEM_TRANSLATIONS } from '@/data/translations';
 import { useLanguage } from '@/context/LanguageContext';
@@ -160,9 +159,6 @@ export default function MenuPage() {
             )}
           </div>
         </section>
-
-        {/* Dedicated Takeaway Ordering Section */}
-        <OrderSection />
       </main>
 
       <Footer />
