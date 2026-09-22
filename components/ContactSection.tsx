@@ -39,7 +39,7 @@ export default function ContactSection({ showReservation = true }: ContactSectio
     e.preventDefault();
     setIsSubmitting(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://aanandbavan-backend.onrender.com';
     try {
       const res = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',

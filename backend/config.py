@@ -30,7 +30,7 @@ class Settings:
     # Server & CORS
     PORT: int = int(os.getenv("PORT", "8000"))
     FRONTEND_URLS: list[str] = [
-        url.strip() for url in os.getenv("FRONTEND_URL", "http://localhost:3000,http://localhost:3001").split(",") if url.strip()
+        url.strip() for url in os.getenv("FRONTEND_URL", "https://anandha-bhavan-fro.vercel.app,http://localhost:3000,http://localhost:3001").split(",") if url.strip()
     ]
 
 settings = Settings()
