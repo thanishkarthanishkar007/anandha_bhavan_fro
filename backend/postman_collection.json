@@ -1,0 +1,119 @@
+{
+  "info": {
+    "_postman_id": "sre-new-aananda-bavan-api-v1",
+    "name": "Sre New Aananda Bavan - Restaurant API",
+    "description": "Postman API Collection for Sre New Aananda Bavan Python Backend with MongoDB Atlas and Resend Email Notifications.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check & Database Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Checks the operational health of the FastAPI backend, MongoDB Atlas cluster connection, and Resend email status."
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Contact / Table Enquiry (Sends Resend Email)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"S. Venkataraman\",\n  \"phone\": \"+91 95975 35555\",\n  \"email\": \"srenewaanandabavan@gmail.com\",\n  \"guests\": \"4 Guests\",\n  \"date\": \"2026-09-28\",\n  \"timeSlot\": \"Lunch (12:30 PM)\",\n  \"specialRequests\": \"Traditional plantain leaf meal for family feast. Pure vegetarian.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/contact",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "contact"]
+        },
+        "description": "Submits a dining enquiry, saves document to MongoDB Atlas 'contact_submissions', and delivers a branded notification email to srenewaanandabavan@gmail.com via Resend API."
+      },
+      "response": []
+    },
+    {
+      "name": "List All Contact Enquiries (MongoDB Atlas)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/contact",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "contact"]
+        },
+        "description": "Fetches all contact enquiries stored in MongoDB Atlas sorted newest first."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Table Reservation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customer_name\": \"M. Thanishkar\",\n  \"phone\": \"+91 98400 54321\",\n  \"email\": \"srenewaanandabavan@gmail.com\",\n  \"guests\": 6,\n  \"date\": \"2026-09-29\",\n  \"time_slot\": \"Dinner (08:00 PM)\",\n  \"table_type\": \"AC Family Dining\",\n  \"special_notes\": \"Near window\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/reservations",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reservations"]
+        },
+        "description": "Creates a new table booking in MongoDB Atlas."
+      },
+      "response": []
+    },
+    {
+      "name": "List Reservations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/reservations",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reservations"]
+        },
+        "description": "Retrieves table bookings stored in MongoDB Atlas."
+      },
+      "response": []
+    },
+    {
+      "name": "Interactive Swagger UI",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/docs",
+          "host": ["{{baseUrl}}"],
+          "path": ["docs"]
+        },
+        "description": "Interactive browser-based OpenAPI documentation UI."
+      },
+      "response": []
+    }
+  ]
+}
