@@ -7,6 +7,7 @@ export interface Reservation {
   timeSlot: string;
   guests: string;
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+  tableType?: string;
   specialRequests?: string;
   createdAt: string;
 }

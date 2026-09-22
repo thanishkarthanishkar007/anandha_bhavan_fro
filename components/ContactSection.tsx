@@ -15,6 +15,7 @@ import {
 import SectionReveal from './SectionReveal';
 import { useLanguage } from '@/context/LanguageContext';
 import { useRestaurant } from '@/context/RestaurantContext';
+import { API_BASE_URL } from '@/lib/api';
 
 interface ContactSectionProps {
   showReservation?: boolean;
@@ -39,7 +40,7 @@ export default function ContactSection({ showReservation = true }: ContactSectio
     e.preventDefault();
     setIsSubmitting(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://aanandbavan-backend.onrender.com';
+    const apiUrl = API_BASE_URL;
     try {
       const res = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',

@@ -15,7 +15,6 @@ import {
   AlertCircle,
   Sparkles,
   ArrowLeft,
-  KeyRound,
 } from 'lucide-react';
 
 export default function AdminSignInPage() {
@@ -50,12 +49,6 @@ export default function AdminSignInPage() {
     } else {
       setError(result.error || 'Authentication failed.');
     }
-  };
-
-  const handleQuickFill = () => {
-    setEmail('srenewaanandabavan@gmail.com');
-    setPassword('63833 12948');
-    setError(null);
   };
 
   return (
@@ -144,7 +137,7 @@ export default function AdminSignInPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="srenewaanandabavan@gmail.com"
+                  placeholder="Enter admin email"
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-cream/50 border border-deep-green/15 text-deep-green placeholder-deep-green/40 text-sm focus:outline-none focus:ring-2 focus:ring-restaurant-green focus:border-transparent transition-all"
                   autoComplete="email"
                   required
@@ -181,18 +174,6 @@ export default function AdminSignInPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
-
-            {/* Quick Fill Helper */}
-            <div className="pt-1 flex justify-end">
-              <button
-                type="button"
-                onClick={handleQuickFill}
-                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-restaurant-green hover:text-leaf-green transition-colors cursor-pointer"
-              >
-                <KeyRound className="w-3 h-3" />
-                <span>Auto-fill Admin Credentials</span>
-              </button>
             </div>
 
             {/* Submit Button */}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL, setAuthToken, clearAuthToken, getAuthToken } from '@/lib/api';
 
 export interface AdminUser {
   email: string;
@@ -18,10 +19,6 @@ interface AdminAuthContextType {
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
-
-const ADMIN_EMAIL = 'srenewaanandabavan@gmail.com';
-const ADMIN_PASSWORD_STANDARD = '63833 12948';
-const ADMIN_PASSWORD_NOSPACE = '6383312948';
 const STORAGE_KEY = 'sre_admin_session';
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
@@ -30,12 +27,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if session exists in localStorage
+    // Check if session exists in localStorage and token is active
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      const token = getAuthToken();
+
+      if (saved && token) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.email === ADMIN_EMAIL) {
+        if (parsed && parsed.email) {
           setIsAuthenticated(true);
           setAdminUser(parsed);
         }
@@ -49,47 +48,67 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    // Add realistic brief validation delay
-    await new Promise((res) => setTimeout(res, 400));
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = pass.trim();
-    const cleanPassNoSpace = pass.replace(/\s+/g, '');
 
-    if (
-      cleanEmail === ADMIN_EMAIL &&
-      (cleanPass === ADMIN_PASSWORD_STANDARD || cleanPassNoSpace === ADMIN_PASSWORD_NOSPACE)
-    ) {
-      const user: AdminUser = {
-        email: ADMIN_EMAIL,
-        name: 'Sre New Aananda Bavan',
-        role: 'Administrator',
-        loginTime: new Date().toISOString(),
-      };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password: cleanPass,
+        }),
+      });
 
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        if (typeof document !== 'undefined') {
-          document.cookie = `sre_admin_auth=true; path=/; max-age=86400; SameSite=Lax`;
+      const data = await res.json();
+
+      if (res.ok && data.success && data.token) {
+        setAuthToken(data.token);
+
+        const user: AdminUser = {
+          email: data.user.email,
+          name: data.user.name || 'Sre New Aananda Bavan',
+          role: data.user.role || 'Administrator',
+          loginTime: new Date().toISOString(),
+        };
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+          if (typeof document !== 'undefined') {
+            document.cookie = `sre_admin_auth=true; path=/; max-age=604800; SameSite=Lax`;
+          }
+        } catch (err) {
+          console.warn('Storage error', err);
         }
-      } catch (err) {
-        console.warn('Storage error', err);
+
+        setAdminUser(user);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return { success: true };
+      } else {
+        setIsLoading(false);
+        return {
+          success: false,
+          error: data.detail || 'Invalid email or password. Please verify credentials.',
+        };
       }
-
-      setAdminUser(user);
-      setIsAuthenticated(true);
+    } catch (err: any) {
+      console.error('Backend authentication connection error', err);
       setIsLoading(false);
-      return { success: true };
+      return {
+        success: false,
+        error:
+          'Unable to connect to the authentication server. Please check your internet connection or try again shortly.',
+      };
     }
-
-    setIsLoading(false);
-    return {
-      success: false,
-      error: 'Invalid email or password. Please check your credentials and try again.',
-    };
   };
 
   const logout = () => {
+    clearAuthToken();
     try {
       localStorage.removeItem(STORAGE_KEY);
       if (typeof document !== 'undefined') {

@@ -40,6 +40,10 @@ def get_settings_collection() -> Collection:
     database = get_database()
     return database["restaurant_settings"]
 
+def get_admin_collection() -> Collection:
+    database = get_database()
+    return database["admin_users"]
+
 def ping_db() -> bool:
     try:
         database = get_database()

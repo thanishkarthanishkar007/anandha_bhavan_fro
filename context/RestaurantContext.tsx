@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL, fetchWithAuth } from '@/lib/api';
 
 export interface RestaurantInfo {
   name: string;
@@ -54,6 +55,7 @@ interface RestaurantContextType {
   restaurantInfo: RestaurantInfo;
   updateRestaurantInfo: (info: Partial<RestaurantInfo>) => void;
   resetToDefaults: () => void;
+  isLoaded: boolean;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
@@ -64,30 +66,72 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          setRestaurantInfo((prev) => ({ ...prev, ...parsed }));
+    let isMounted = true;
+
+    async function loadSettings() {
+      // 1. Instant load from localStorage
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            setRestaurantInfo((prev) => ({ ...prev, ...parsed }));
+          }
         }
+      } catch (e) {
+        console.warn('LocalStorage settings load error', e);
       }
-    } catch (e) {
-      console.error('Failed to load restaurant profile info', e);
-    } finally {
-      setIsLoaded(true);
+
+      // 2. Sync from backend API
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/settings`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === 'object' && isMounted) {
+            delete data._id;
+            setRestaurantInfo((prev) => {
+              const merged = { ...prev, ...data };
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+              } catch (e) {}
+              return merged;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Backend settings sync fallback to cached/default info', err);
+      } finally {
+        if (isMounted) setIsLoaded(true);
+      }
     }
+
+    loadSettings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const updateRestaurantInfo = (newInfo: Partial<RestaurantInfo>) => {
+    let updatedPayload: RestaurantInfo = DEFAULT_RESTAURANT_INFO;
+
     setRestaurantInfo((prev) => {
       const updated = { ...prev, ...newInfo };
+      updatedPayload = updated;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       } catch (err) {
-        console.warn('Failed to persist restaurant info', err);
+        console.warn('Failed to persist restaurant info locally', err);
       }
       return updated;
+    });
+
+    // Persist to MongoDB Atlas via backend API
+    fetchWithAuth('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(updatedPayload),
+    }).catch((err) => {
+      console.warn('Backend sync failed for updateRestaurantInfo', err);
     });
   };
 
@@ -96,6 +140,14 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
     setRestaurantInfo(DEFAULT_RESTAURANT_INFO);
+
+    // Sync defaults to backend
+    fetchWithAuth('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(DEFAULT_RESTAURANT_INFO),
+    }).catch((err) => {
+      console.warn('Backend reset sync failed', err);
+    });
   };
 
   return (
@@ -104,6 +156,7 @@ export function RestaurantProvider({ children }: { children: React.ReactNode }) 
         restaurantInfo,
         updateRestaurantInfo,
         resetToDefaults,
+        isLoaded,
       }}
     >
       {children}

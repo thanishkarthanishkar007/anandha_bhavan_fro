@@ -88,3 +88,14 @@ def update_reservation_status(res_id: str, payload: ReservationStatusUpdate):
         return {"success": True, "id": res_id, "new_status": payload.status}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/{res_id}")
+def delete_reservation(res_id: str):
+    try:
+        col = get_reservations_collection()
+        res = col.delete_one({"_id": ObjectId(res_id)})
+        if res.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Reservation not found")
+        return {"success": True, "id": res_id, "deleted": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

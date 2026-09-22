@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/data/menu';
 import { useLanguage } from '@/context/LanguageContext';
+import { useMenu } from '@/context/MenuContext';
 import { Sparkles, Eye, X, Clock, Flame, ShieldCheck } from 'lucide-react';
 
 interface MenuCardProps {
@@ -13,9 +14,11 @@ interface MenuCardProps {
 
 export default function MenuCard({ item }: MenuCardProps) {
   const { t, tItem, tCategory } = useLanguage();
+  const { stockStatus } = useMenu();
   const [showModal, setShowModal] = useState(false);
 
   const itemTrans = tItem(item);
+  const isOutOfStock = stockStatus[item.id] === false;
 
   return (
     <>
@@ -49,9 +52,18 @@ export default function MenuCard({ item }: MenuCardProps) {
             </div>
 
             {/* Popular Ribbon if marked */}
-            {item.orderSection.isPopular && (
+            {item.orderSection.isPopular && !isOutOfStock && (
               <div className="absolute top-3 right-3 bg-restaurant-yellow text-deep-green px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
                 {t('menu.chefPick')}
+              </div>
+            )}
+
+            {/* Out of Stock Overlay */}
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-deep-green/65 backdrop-blur-[2px] flex items-center justify-center z-10">
+                <span className="px-3 py-1 bg-red-600/90 text-warm-white font-bold text-xs uppercase tracking-wider rounded-full shadow-md">
+                  Currently Sold Out
+                </span>
               </div>
             )}
           </div>

@@ -333,7 +333,7 @@ export default function AdminSettingsPage() {
                   Admin Sign In Route
                 </p>
                 <p className="font-bold text-xs text-deep-green">
-                  localhost:3001/admin/
+                  srenewaanandabavan.com/admin/
                 </p>
                 <p className="text-[11px] text-deep-green/60">
                   Protected route • Direct sign-in & dashboard redirect

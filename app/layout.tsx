@@ -3,6 +3,7 @@ import { Outfit } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { RestaurantProvider } from '@/context/RestaurantContext';
+import { MenuProvider } from '@/context/MenuContext';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -219,9 +220,11 @@ export default function RootLayout({
       </head>
       <body className="bg-warm-white text-deep-green overflow-x-clip antialiased selection:bg-restaurant-green selection:text-cream">
         <RestaurantProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
+          <MenuProvider>
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
+          </MenuProvider>
         </RestaurantProvider>
       </body>
     </html>

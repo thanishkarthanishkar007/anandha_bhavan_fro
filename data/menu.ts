@@ -54,6 +54,7 @@ export interface MenuItem {
     isPopular: boolean;
   };
   isVeg: boolean;
+  inStock?: boolean;
 }
 
 export const CATEGORIES = [

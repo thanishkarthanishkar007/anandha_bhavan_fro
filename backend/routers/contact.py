@@ -143,3 +143,17 @@ def get_contact_submission(submission_id: str):
         return doc
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid ID or query error: {str(e)}")
+
+@router.delete("/{submission_id}")
+def delete_contact_submission(submission_id: str):
+    """
+    Deletes a specific inquiry by ID.
+    """
+    try:
+        col = get_contact_collection()
+        res = col.delete_one({"_id": ObjectId(submission_id)})
+        if res.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Inquiry not found")
+        return {"success": True, "id": submission_id, "deleted": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid ID or query error: {str(e)}")

@@ -6,18 +6,20 @@ import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import MenuCard from '@/components/MenuCard';
 import SectionReveal from '@/components/SectionReveal';
-import { MENU_ITEMS, CATEGORIES, MenuItem } from '@/data/menu';
+import { CATEGORIES, MenuItem } from '@/data/menu';
 import { MENU_ITEM_TRANSLATIONS } from '@/data/translations';
 import { useLanguage } from '@/context/LanguageContext';
+import { useMenu } from '@/context/MenuContext';
 import { Search, Sparkles, Leaf, ShieldCheck, Heart, Clock } from 'lucide-react';
 
 export default function MenuPage() {
   const { t, tCategory, language } = useLanguage();
+  const { menuItems } = useMenu();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredItems = useMemo(() => {
-    return MENU_ITEMS.filter((item) => {
+    return menuItems.filter((item) => {
       // Category filter
       const matchesCategory =
         activeCategory === 'All' || item.category === activeCategory;

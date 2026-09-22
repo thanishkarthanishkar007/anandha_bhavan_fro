@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MENU_ITEMS, MenuItem, MenuCategory } from '@/data/menu';
+import { API_BASE_URL, fetchWithAuth } from '@/lib/api';
 
 interface MenuContextType {
   menuItems: MenuItem[];
@@ -10,6 +11,7 @@ interface MenuContextType {
   deleteMenuItem: (id: string) => void;
   toggleStock: (id: string) => void;
   stockStatus: Record<string, boolean>;
+  isLoading: boolean;
 }
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
@@ -19,46 +21,88 @@ const STORAGE_KEY_STOCK = 'sre_admin_menu_stock_status';
 export function MenuProvider({ children }: { children: React.ReactNode }) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_ITEMS);
   const [stockStatus, setStockStatus] = useState<Record<string, boolean>>({});
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Load from backend API and fallback to localStorage / defaults
   useEffect(() => {
-    try {
-      // Load custom / modified menu items
-      const savedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
-      if (savedItems) {
-        const parsed = JSON.parse(savedItems);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMenuItems(parsed);
+    let isMounted = true;
+
+    async function loadMenu() {
+      // 1. First check localStorage for instant render
+      try {
+        const savedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
+        if (savedItems) {
+          const parsed = JSON.parse(savedItems);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMenuItems(parsed);
+          }
         }
+
+        const savedStock = localStorage.getItem(STORAGE_KEY_STOCK);
+        if (savedStock) {
+          setStockStatus(JSON.parse(savedStock));
+        }
+      } catch (e) {
+        console.warn('Initial localStorage load error', e);
       }
 
-      // Load stock statuses
-      const savedStock = localStorage.getItem(STORAGE_KEY_STOCK);
-      if (savedStock) {
-        setStockStatus(JSON.parse(savedStock));
+      // 2. Fetch live menu from Backend MongoDB API
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/menu`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.items) && data.items.length > 0 && isMounted) {
+            const backendItems: MenuItem[] = data.items;
+            const backendStock: Record<string, boolean> = {};
+
+            backendItems.forEach((item) => {
+              if (item.inStock !== undefined) {
+                backendStock[item.id] = item.inStock;
+              }
+            });
+
+            // Combine backend items with static default dishes (avoid duplicates by ID)
+            const backendIds = new Set(backendItems.map((i) => i.id));
+            const remainingDefaults = MENU_ITEMS.filter((i) => !backendIds.has(i.id));
+            const merged = [...backendItems, ...remainingDefaults];
+
+            setMenuItems(merged);
+            setStockStatus((prev) => ({ ...prev, ...backendStock }));
+
+            try {
+              localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(merged));
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.warn('Backend menu sync fallback to cached/default items', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load menu state from storage', err);
-    } finally {
-      setIsLoaded(true);
     }
+
+    loadMenu();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const saveItems = (newItems: MenuItem[]) => {
+  const saveItemsLocally = (newItems: MenuItem[]) => {
     setMenuItems(newItems);
     try {
       localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(newItems));
     } catch (e) {
-      console.warn('Could not persist menu items', e);
+      console.warn('Could not persist menu items locally', e);
     }
   };
 
-  const saveStock = (newStock: Record<string, boolean>) => {
+  const saveStockLocally = (newStock: Record<string, boolean>) => {
     setStockStatus(newStock);
     try {
       localStorage.setItem(STORAGE_KEY_STOCK, JSON.stringify(newStock));
     } catch (e) {
-      console.warn('Could not persist stock status', e);
+      console.warn('Could not persist stock status locally', e);
     }
   };
 
@@ -109,11 +153,22 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updated = [newItem, ...menuItems];
-    saveItems(updated);
+    saveItemsLocally(updated);
+
+    // Persist to MongoDB Atlas via backend API
+    fetchWithAuth('/api/menu', {
+      method: 'POST',
+      body: JSON.stringify(newItem),
+    }).catch((err) => {
+      console.warn('Backend sync failed for addMenuItem', err);
+    });
+
     return newItem;
   };
 
   const updateMenuItem = (id: string, updatedFields: Partial<MenuItem>) => {
+    let targetItem: MenuItem | undefined;
+
     const updated = menuItems.map((item) => {
       if (item.id === id) {
         const merged = { ...item, ...updatedFields };
@@ -122,25 +177,53 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
           merged.price = rawPrice.startsWith('₹') ? rawPrice : `₹${rawPrice}`;
           merged.numericPrice = parseInt(merged.price.replace(/[^\d]/g, ''), 10) || 0;
         }
+        targetItem = merged;
         return merged;
       }
       return item;
     });
-    saveItems(updated);
+
+    saveItemsLocally(updated);
+
+    // Persist to MongoDB Atlas via backend API
+    if (targetItem) {
+      fetchWithAuth(`/api/menu/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(targetItem),
+      }).catch((err) => {
+        console.warn('Backend sync failed for updateMenuItem', err);
+      });
+    }
   };
 
   const deleteMenuItem = (id: string) => {
     const updated = menuItems.filter((item) => item.id !== id);
-    saveItems(updated);
+    saveItemsLocally(updated);
+
+    // Persist to MongoDB Atlas via backend API
+    fetchWithAuth(`/api/menu/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch((err) => {
+      console.warn('Backend sync failed for deleteMenuItem', err);
+    });
   };
 
   const toggleStock = (id: string) => {
     const current = stockStatus[id] !== false; // default true
+    const newStock = !current;
     const updated = {
       ...stockStatus,
-      [id]: !current,
+      [id]: newStock,
     };
-    saveStock(updated);
+    saveStockLocally(updated);
+
+    // Persist to MongoDB Atlas via backend API
+    fetchWithAuth(`/api/menu/${encodeURIComponent(id)}/stock`, {
+      method: 'PATCH',
+      body: JSON.stringify({ inStock: newStock }),
+    }).catch((err) => {
+      console.warn('Backend sync failed for toggleStock', err);
+    });
   };
 
   return (
@@ -152,6 +235,7 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
         deleteMenuItem,
         toggleStock,
         stockStatus,
+        isLoading,
       }}
     >
       {children}
