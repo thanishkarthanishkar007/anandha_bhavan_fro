@@ -10,7 +10,8 @@ import MenuCard from '@/components/MenuCard';
 import Gallery from '@/components/Gallery';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
-import { MENU_ITEMS, MenuItem } from '@/data/menu';
+import { MenuItem } from '@/data/menu';
+import { useMenu } from '@/context/MenuContext';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Sparkles,
@@ -24,6 +25,7 @@ import {
 
 export default function Home() {
   const { t } = useLanguage();
+  const { menuItems } = useMenu();
 
   // Six featured signature items for the initial homepage view
   const featuredIds = [
@@ -34,7 +36,7 @@ export default function Home() {
     'grv-paneer-butter-masala',
     'hb-coffee',
   ];
-  const displayedItems = MENU_ITEMS.filter((item) => featuredIds.includes(item.id));
+  const displayedItems = menuItems.filter((item) => featuredIds.includes(item.id));
 
   return (
     <div className="relative min-h-screen bg-warm-white text-deep-green flex flex-col">

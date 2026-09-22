@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
-from database import get_contact_collection
+from database import get_contact_collection, get_reservations_collection
 from services.email_service import send_contact_notification
 
 router = APIRouter(prefix="/api/contact", tags=["Contact & Enquiries"])
@@ -63,10 +63,37 @@ def submit_contact_form(payload: ContactSubmissionRequest):
         "status": "new"
     }
 
-    # 1. Insert into MongoDB Atlas
+    # 1. Insert into MongoDB Atlas contact_submissions
     try:
         insert_result = col.insert_one(doc)
         submission_id = str(insert_result.inserted_id)
+
+        # Automatically record as reservation so it appears in Admin Reservations module
+        try:
+            res_col = get_reservations_collection()
+            guest_count = 2
+            try:
+                digits = ''.join(filter(str.isdigit, payload.guests))
+                if digits:
+                    guest_count = int(digits)
+            except Exception:
+                guest_count = 2
+
+            res_col.insert_one({
+                "customer_name": doc["name"],
+                "phone": doc["phone"],
+                "email": doc["email"],
+                "guests": guest_count,
+                "date": doc["date"],
+                "time_slot": doc["time_slot"] or "Standard Dining",
+                "table_type": "AC Family Dining",
+                "special_notes": doc["special_requests"],
+                "status": "Pending",
+                "created_at": now_iso,
+                "booking_source": "Website Online Form"
+            })
+        except Exception:
+            pass
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

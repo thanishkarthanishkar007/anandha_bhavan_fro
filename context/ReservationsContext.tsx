@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Reservation, INITIAL_RESERVATIONS } from '@/data/reservations';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Reservation } from '@/data/reservations';
 import { API_BASE_URL, fetchWithAuth } from '@/lib/api';
 
 interface ReservationsContextType {
@@ -9,6 +9,7 @@ interface ReservationsContextType {
   updateStatus: (id: string, newStatus: Reservation['status']) => void;
   addReservation: (reservation: Omit<Reservation, 'id' | 'createdAt'>) => void;
   deleteReservation: (id: string) => void;
+  refreshReservations: () => Promise<void>;
   stats: {
     total: number;
     pending: number;
@@ -20,81 +21,84 @@ interface ReservationsContextType {
 }
 
 const ReservationsContext = createContext<ReservationsContextType | undefined>(undefined);
-const STORAGE_KEY = 'sre_admin_reservations_list';
+const STORAGE_KEY = 'sre_admin_reservations_list_v2';
 
 export function ReservationsProvider({ children }: { children: React.ReactNode }) {
-  const [reservations, setReservations] = useState<Reservation[]>(INITIAL_RESERVATIONS);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchReservations = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/reservations`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items)) {
+          const mapped: Reservation[] = data.items.map((item: any) => ({
+            id: item._id || item.id,
+            customerName: item.customer_name || item.customerName || 'Guest',
+            phone: item.phone || '',
+            email: item.email || '',
+            date: item.date || '',
+            timeSlot: item.time_slot || item.timeSlot || 'Standard Dining',
+            guests:
+              typeof item.guests === 'number'
+                ? `${item.guests} Guests`
+                : item.guests || '2 Guests',
+            tableType: item.table_type || item.tableType || 'AC Dining',
+            status: (item.status as Reservation['status']) || 'Pending',
+            specialRequests: item.special_notes || item.specialRequests || '',
+            createdAt: item.created_at
+              ? new Date(item.created_at).toLocaleString('en-IN', {
+                  dateStyle: 'short',
+                  timeStyle: 'short',
+                })
+              : new Date().toLocaleString('en-IN', {
+                  dateStyle: 'short',
+                  timeStyle: 'short',
+                }),
+          }));
 
-    async function loadReservations() {
-      // 1. Initial hydration from localStorage
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setReservations(parsed);
-          }
+          setReservations(mapped);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
+          } catch (e) {}
         }
-      } catch (e) {
-        console.warn('LocalStorage reservations load error', e);
       }
-
-      // 2. Fetch from backend API
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/reservations`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.items) && data.items.length > 0 && isMounted) {
-            const mapped: Reservation[] = data.items.map((item: any) => ({
-              id: item._id || item.id,
-              customerName: item.customer_name || item.customerName || 'Guest',
-              phone: item.phone || '',
-              email: item.email || '',
-              date: item.date || '',
-              timeSlot: item.time_slot || item.timeSlot || 'Lunch Session',
-              guests: `${item.guests || 2} Guests`,
-              tableType: item.table_type || item.tableType || 'AC Dining',
-              status: (item.status as Reservation['status']) || 'Pending',
-              specialRequests: item.special_notes || item.specialRequests || '',
-              createdAt: item.created_at
-                ? new Date(item.created_at).toLocaleString('en-IN', {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  })
-                : new Date().toLocaleString('en-IN', {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  }),
-            }));
-
-            // Combine backend with existing initial reservations (backend items prioritized)
-            const backendIds = new Set(mapped.map((r) => r.id));
-            const remaining = INITIAL_RESERVATIONS.filter((r) => !backendIds.has(r.id));
-            const combined = [...mapped, ...remaining];
-
-            setReservations(combined);
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(combined));
-            } catch (e) {}
-          }
-        }
-      } catch (err) {
-        console.warn('Backend reservations sync fallback to cache', err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+    } catch (err) {
+      console.warn('Backend reservations sync error', err);
+    } finally {
+      setIsLoading(false);
     }
-
-    loadReservations();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    // Purge legacy mock data cache from previous versions
+    try {
+      localStorage.removeItem('sre_admin_reservations_list');
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Verify no mock data
+          const isClean = !parsed.some((r: any) => r.id && String(r.id).startsWith('RES-100'));
+          if (isClean) {
+            setReservations(parsed);
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      }
+    } catch (e) {}
+
+    fetchReservations();
+
+    // Poll every 15 seconds to automatically pick up new reservations submitted by customers
+    const interval = setInterval(() => {
+      fetchReservations();
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [fetchReservations]);
 
   const saveToStorage = (items: Reservation[]) => {
     setReservations(items);
@@ -111,7 +115,7 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
     );
     saveToStorage(updated);
 
-    // Sync to backend
+    // Sync to backend MongoDB Atlas
     fetchWithAuth(`/api/reservations/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status: newStatus }),
@@ -123,7 +127,7 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
   const addReservation = (data: Omit<Reservation, 'id' | 'createdAt'>) => {
     const newRes: Reservation = {
       ...data,
-      id: `RES-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `RES-${Date.now()}`,
       createdAt: new Date().toLocaleString('en-IN', {
         dateStyle: 'short',
         timeStyle: 'short',
@@ -131,10 +135,8 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
     };
     saveToStorage([newRes, ...reservations]);
 
-    // Parse guest count
     const numGuests = parseInt(data.guests.replace(/[^\d]/g, ''), 10) || 2;
 
-    // Sync to backend
     fetchWithAuth('/api/reservations', {
       method: 'POST',
       body: JSON.stringify({
@@ -147,16 +149,17 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
         table_type: data.tableType || 'AC Dining',
         special_notes: data.specialRequests || '',
       }),
-    }).catch((err) => {
-      console.warn('Backend sync failed for addReservation', err);
-    });
+    })
+      .then(() => fetchReservations())
+      .catch((err) => {
+        console.warn('Backend sync failed for addReservation', err);
+      });
   };
 
   const deleteReservation = (id: string) => {
     const updated = reservations.filter((item) => item.id !== id);
     saveToStorage(updated);
 
-    // Sync to backend
     fetchWithAuth(`/api/reservations/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     }).catch((err) => {
@@ -179,6 +182,7 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
         updateStatus,
         addReservation,
         deleteReservation,
+        refreshReservations: fetchReservations,
         stats,
         isLoading,
       }}

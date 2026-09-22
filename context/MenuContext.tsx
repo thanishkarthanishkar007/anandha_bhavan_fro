@@ -61,16 +61,22 @@ export function MenuProvider({ children }: { children: React.ReactNode }) {
               }
             });
 
-            // Combine backend items with static default dishes (avoid duplicates by ID)
-            const backendIds = new Set(backendItems.map((i) => i.id));
-            const remainingDefaults = MENU_ITEMS.filter((i) => !backendIds.has(i.id));
-            const merged = [...backendItems, ...remainingDefaults];
+            let activeCatalog: MenuItem[];
+            if (backendItems.length >= 50) {
+              // Full catalog is stored in MongoDB Atlas - respect all adds, edits, and deletions
+              activeCatalog = backendItems;
+            } else {
+              // Partial or initial items - merge with defaults without duplicating IDs
+              const backendIds = new Set(backendItems.map((i) => i.id));
+              const remainingDefaults = MENU_ITEMS.filter((i) => !backendIds.has(i.id));
+              activeCatalog = [...backendItems, ...remainingDefaults];
+            }
 
-            setMenuItems(merged);
+            setMenuItems(activeCatalog);
             setStockStatus((prev) => ({ ...prev, ...backendStock }));
 
             try {
-              localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(merged));
+              localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(activeCatalog));
             } catch (e) {}
           }
         }

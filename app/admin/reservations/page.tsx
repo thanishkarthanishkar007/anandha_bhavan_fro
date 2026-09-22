@@ -19,14 +19,30 @@ import {
   Calendar,
   Sparkles,
   X,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function AdminReservationsPage() {
-  const { reservations, updateStatus, addReservation, deleteReservation, stats } = useReservations();
+  const {
+    reservations,
+    updateStatus,
+    addReservation,
+    deleteReservation,
+    refreshReservations,
+    stats,
+    isLoading,
+  } = useReservations();
 
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshReservations();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   // New reservation form state
   const [newRes, setNewRes] = useState({
@@ -95,13 +111,25 @@ export default function AdminReservationsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-restaurant-green hover:bg-leaf-green text-warm-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer shrink-0 active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Reservation</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-2xl bg-cream hover:bg-cream/80 text-deep-green border border-deep-green/15 font-bold text-xs sm:text-sm shadow-2xs transition-all cursor-pointer shrink-0 disabled:opacity-50"
+            title="Refresh bookings from database"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-restaurant-green hover:bg-leaf-green text-warm-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer shrink-0 active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Reservation</span>
+          </button>
+        </div>
       </div>
 
       {/* Metric Pills */}

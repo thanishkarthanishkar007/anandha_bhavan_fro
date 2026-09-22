@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MenuItem, MENU_ITEMS } from '@/data/menu';
+import { MenuItem } from '@/data/menu';
 import { useLanguage } from '@/context/LanguageContext';
+import { useMenu } from '@/context/MenuContext';
 import {
   ShoppingBag,
   Plus,
@@ -26,13 +27,9 @@ interface CartItem {
 
 export default function OrderSection() {
   const { t, tItem, tCategory } = useLanguage();
-  const orderableItems = MENU_ITEMS.slice(0, 4); // Signature 4 items
-  const [quantities, setQuantities] = useState<Record<string, number>>({
-    [orderableItems[0].id]: 1,
-    [orderableItems[1].id]: 1,
-    [orderableItems[2].id]: 1,
-    [orderableItems[3].id]: 1,
-  });
+  const { menuItems } = useMenu();
+  const orderableItems = menuItems.slice(0, 4); // Signature 4 items
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
