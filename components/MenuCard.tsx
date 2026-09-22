@@ -25,7 +25,7 @@ export default function MenuCard({ item }: MenuCardProps) {
           <div className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-cream mb-4">
             <Image
               src={item.image}
-              alt={itemTrans.name}
+              alt={`${itemTrans.name} - Pure Vegetarian South Indian Specialty at Sre New Aananda Bavan`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"

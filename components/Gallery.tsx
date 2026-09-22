@@ -247,7 +247,7 @@ export default function Gallery({ isPreview = false }: GalleryProps) {
                 >
                   <Image
                     src={item.image}
-                    alt={getTitle(item)}
+                    alt={`${getTitle(item)} - Sre New Aananda Bavan Pure Veg Restaurant Salem`}
                     fill
                     sizes={
                       isFullSpan
@@ -327,7 +327,7 @@ export default function Gallery({ isPreview = false }: GalleryProps) {
               <div className="relative w-full h-[62vh] max-h-[62vh] rounded-3xl overflow-hidden bg-black/50 shadow-2xl border border-warm-white/20 flex items-center justify-center p-2">
                 <Image
                   src={currentItem.image}
-                  alt={getTitle(currentItem)}
+                  alt={`${getTitle(currentItem)} - Sre New Aananda Bavan Pure Veg Restaurant Salem`}
                   fill
                   sizes="(max-width: 1280px) 100vw, 1200px"
                   className="object-contain"

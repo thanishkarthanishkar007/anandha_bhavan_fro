@@ -32,9 +32,12 @@ export default function FoodTextOverlays({ scrollYProgress }: FoodTextOverlaysPr
         </div>
 
         <h1 className="w-full max-w-[280px] sm:max-w-[420px] md:max-w-[520px] lg:max-w-[620px] mx-auto flex items-center justify-center my-2 sm:my-3">
+          <span className="sr-only">
+            Sre New Aananda Bavan - Authentic South Indian Pure Vegetarian A/C Restaurant in Salem (NH 44)
+          </span>
           <Image
             src="/images/aananda-bavan-hero.png"
-            alt="Sre New Aananda Bavan - Pure Veg A/C Restaurant"
+            alt="Sre New Aananda Bavan - Pure Veg A/C Restaurant in Salem on NH 44"
             width={1024}
             height={383}
             priority

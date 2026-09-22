@@ -134,7 +134,7 @@ export default function Home() {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-deep-green">{t('about.feat1.title')}</h5>
+                    <h3 className="text-sm font-bold text-deep-green">{t('about.feat1.title')}</h3>
                     <p className="text-xs text-deep-green/70 mt-0.5">
                       {t('about.feat1.desc')}
                     </p>
@@ -146,7 +146,7 @@ export default function Home() {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-deep-green">{t('about.feat2.title')}</h5>
+                    <h3 className="text-sm font-bold text-deep-green">{t('about.feat2.title')}</h3>
                     <p className="text-xs text-deep-green/70 mt-0.5">
                       {t('about.feat2.desc')}
                     </p>
@@ -158,7 +158,7 @@ export default function Home() {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-deep-green">{t('about.feat3.title')}</h5>
+                    <h3 className="text-sm font-bold text-deep-green">{t('about.feat3.title')}</h3>
                     <p className="text-xs text-deep-green/70 mt-0.5">
                       {t('about.feat3.desc')}
                     </p>
@@ -170,7 +170,7 @@ export default function Home() {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-deep-green">{t('about.feat4.title')}</h5>
+                    <h3 className="text-sm font-bold text-deep-green">{t('about.feat4.title')}</h3>
                     <p className="text-xs text-deep-green/70 mt-0.5">
                       {t('about.feat4.desc')}
                     </p>

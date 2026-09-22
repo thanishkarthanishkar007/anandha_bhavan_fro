@@ -1,0 +1,9 @@
+# Robots.txt for Sre New Aananda Bavan (https://srenewaanandabavan.com)
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+Disallow: /api
+
+Sitemap: https://srenewaanandabavan.com/sitemap.xml
