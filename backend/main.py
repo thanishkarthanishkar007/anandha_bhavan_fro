@@ -8,7 +8,7 @@ import uvicorn
 
 from config import settings
 from database import ping_db, get_database, get_admin_collection, get_settings_collection
-from routers import contact, reservations, menu, auth, settings as settings_router
+from routers import contact, reservations, menu, auth, settings as settings_router, privacy
 
 # Configure logging
 logging.basicConfig(
@@ -103,6 +103,7 @@ app.include_router(contact.router)
 app.include_router(reservations.router)
 app.include_router(menu.router)
 app.include_router(settings_router.router)
+app.include_router(privacy.router)
 
 @app.get("/", tags=["Health"])
 def root():

@@ -101,6 +101,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       href: '/admin/settings/',
       icon: Settings,
     },
+    {
+      name: 'DPDP Privacy',
+      href: '/admin/privacy/',
+      icon: ShieldCheck,
+    },
   ];
 
   const handleLogout = () => {

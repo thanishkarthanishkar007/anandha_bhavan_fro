@@ -44,6 +44,10 @@ def get_admin_collection() -> Collection:
     database = get_database()
     return database["admin_users"]
 
+def get_privacy_collection() -> Collection:
+    database = get_database()
+    return database["privacy_requests"]
+
 def ping_db() -> bool:
     try:
         database = get_database()

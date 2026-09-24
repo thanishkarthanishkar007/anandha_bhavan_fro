@@ -4,6 +4,9 @@ import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { RestaurantProvider } from '@/context/RestaurantContext';
 import { MenuProvider } from '@/context/MenuContext';
+import { CookieConsentProvider } from '@/context/CookieConsentContext';
+import CookieBanner from '@/components/CookieBanner';
+import CookiePreferencesModal from '@/components/CookiePreferencesModal';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -222,7 +225,11 @@ export default function RootLayout({
         <RestaurantProvider>
           <MenuProvider>
             <LanguageProvider>
-              {children}
+              <CookieConsentProvider>
+                {children}
+                <CookieBanner />
+                <CookiePreferencesModal />
+              </CookieConsentProvider>
             </LanguageProvider>
           </MenuProvider>
         </RestaurantProvider>

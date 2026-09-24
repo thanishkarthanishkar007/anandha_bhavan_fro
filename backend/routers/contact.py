@@ -19,6 +19,9 @@ class ContactSubmissionRequest(BaseModel):
     time_slot: Optional[str] = Field(default="", description="Alternative field for timeSlot")
     specialRequests: Optional[str] = Field(default="", description="Special dietary or seating requests")
     special_requests: Optional[str] = Field(default="", description="Alternative field for specialRequests")
+    dpdpConsent: Optional[bool] = Field(default=True, description="Explicit DPDP Act 2023 consent")
+    dpdpConsentTimestamp: Optional[str] = Field(default=None, description="ISO timestamp of consent")
+    dpdpVersion: Optional[str] = Field(default="DPDP-Act-2023", description="DPDP notice version")
 
 class ContactSubmissionResponse(BaseModel):
     success: bool
@@ -57,6 +60,9 @@ def submit_contact_form(payload: ContactSubmissionRequest):
         "date": payload.date.strip(),
         "time_slot": session_time.strip(),
         "special_requests": dietary_notes.strip(),
+        "dpdp_consent": payload.dpdpConsent if payload.dpdpConsent is not None else True,
+        "dpdp_consent_timestamp": payload.dpdpConsentTimestamp or now_iso,
+        "dpdp_version": payload.dpdpVersion or "DPDP-Act-2023",
         "created_at": now_iso,
         "email_status": "pending",
         "resend_id": None,

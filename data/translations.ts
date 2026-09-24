@@ -903,6 +903,98 @@ export const TRANSLATIONS: Translations = {
     en: 'Reservations',
     ta: 'முன்பதிவுகள்',
   },
+  'footer.privacyLegal': {
+    en: 'Privacy & Legal',
+    ta: 'தனியுரிமை & சட்டப்பூர்வ விவரங்கள்',
+  },
+  'footer.privacyNotice': {
+    en: 'Privacy Notice',
+    ta: 'தனியுரிமை கொள்கை',
+  },
+  'footer.cookiePreferences': {
+    en: 'Cookie Preferences',
+    ta: 'குக்கீ விருப்பங்கள்',
+  },
+  'footer.privacyCentre': {
+    en: 'Privacy Centre',
+    ta: 'தனியுரிமை மையம்',
+  },
+  'footer.terms': {
+    en: 'Terms & Conditions',
+    ta: 'விதிமுறைகள் மற்றும் நிபந்தனைகள்',
+  },
+  'contact.dpdpConsent': {
+    en: 'I agree to the processing of my personal data for the purpose described in the Privacy Notice.',
+    ta: 'தனியுரிமை அறிவிப்பில் விவரிக்கப்பட்டுள்ள நோக்கத்திற்காக எனது தனிப்பட்ட தரவைச் செயலாக்க ஒப்புக்கொள்கிறேன்.',
+  },
+  'contact.dpdpConsentPrefix': {
+    en: 'I agree to the processing of my personal data for table reservation and dining enquiries as described in the',
+    ta: 'தனியுரிமை அறிவிப்பில் விவரிக்கப்பட்டுள்ளபடி மேஜை முன்பதிவு மற்றும் உணவு விசாரணைக்காக எனது தனிப்பட்ட தரவைச் செயலாக்க',
+  },
+  'contact.dpdpConsentSuffix': {
+    en: '.',
+    ta: ' ஒப்புக்கொள்கிறேன்.',
+  },
+  'contact.dpdpConsentRequired': {
+    en: 'Please check the consent box to proceed with your reservation.',
+    ta: 'முன்பதிவைத் தொடர தனியுரிமை ஒப்புதல் பெட்டியைத் தேர்ந்தெடுக்கவும்.',
+  },
+  'cookies.bannerTitle': {
+    en: 'Your Privacy',
+    ta: 'உங்கள் தனியுரிமை',
+  },
+  'cookies.bannerDesc': {
+    en: 'We use cookies and similar technologies to ensure seamless table booking, understand website traffic, and enhance your dining experience in accordance with the Digital Personal Data Protection (DPDP) Act, 2023.',
+    ta: 'DPDP சட்டம் 2023-ன் படி எங்கள் வலைத்தளத்தை எளிதாகப் பயன்படுத்தவும், மேஜை முன்பதிவு செய்யவும் மற்றும் சிறந்த சேவையை வழங்கவும் குக்கீகளைப் பயன்படுத்துகிறோம்.',
+  },
+  'cookies.managePreferences': {
+    en: 'Manage Preferences',
+    ta: 'விருப்பங்களை நிர்வகி',
+  },
+  'cookies.accept': {
+    en: 'Accept',
+    ta: 'ஏற்றுக்கொள்',
+  },
+  'cookies.modalTitle': {
+    en: 'Cookie Preferences',
+    ta: 'குக்கீ விருப்பங்கள்',
+  },
+  'cookies.modalSubtitle': {
+    en: 'Manage your cookie settings for Sre New Aananda Bavan.',
+    ta: 'ஸ்ரீ நியூ ஆனந்த பவன் வலைத்தளத்தில் குக்கீ விருப்பங்களை அமைக்கவும்.',
+  },
+  'cookies.essentialTitle': {
+    en: 'Essential Cookies',
+    ta: 'அத்தியாவசிய குக்கீகள்',
+  },
+  'cookies.alwaysActive': {
+    en: 'Always Active',
+    ta: 'எப்போதும் செயலில்',
+  },
+  'cookies.essentialDesc': {
+    en: 'Necessary for the website to function, maintain session security, and retain language preferences. Cannot be deactivated.',
+    ta: 'வலைத்தள பாதுகாப்பு மற்றும் அடிப்படை பயன்பாட்டிற்கு இன்றியமையாதவை. இவற்றை முடக்க முடியாது.',
+  },
+  'cookies.analyticsTitle': {
+    en: 'Analytics Cookies',
+    ta: 'பகுப்பாய்வு குக்கீகள்',
+  },
+  'cookies.analyticsDesc': {
+    en: 'Help us understand how guests navigate our menu and pages so we can enhance the dining experience.',
+    ta: 'வலைத்தள வருகை மற்றும் உணவுக் குறிப்புகளைப் பார்வையிட உதவும் புள்ளிவிவரங்கள்.',
+  },
+  'cookies.marketingTitle': {
+    en: 'Marketing Cookies',
+    ta: 'விளம்பர குக்கீகள்',
+  },
+  'cookies.marketingDesc': {
+    en: 'Used to provide relevant updates on festive specials, royal feasts, and catering services.',
+    ta: 'பண்டிகை கால சிறப்பு உணவுகள் மற்றும் புதிய மெனு அறிவிப்புகளை வழங்க பயன்படுபவை.',
+  },
+  'cookies.savePreferences': {
+    en: 'Save Preferences',
+    ta: 'விருப்பங்களைச் சேமி',
+  },
 
   // About Page Specific
   'aboutPage.heroBadge': {

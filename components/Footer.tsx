@@ -6,10 +6,12 @@ import Image from 'next/image';
 import { Instagram, Facebook, Youtube } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useRestaurant } from '@/context/RestaurantContext';
+import { useCookieConsent } from '@/context/CookieConsentContext';
 
 export default function Footer() {
   const { t } = useLanguage();
   const { restaurantInfo } = useRestaurant();
+  const { openPreferences } = useCookieConsent();
 
   const quickLinks = [
     { name: t('nav.home'), href: '/' },
@@ -151,6 +153,38 @@ export default function Footer() {
                 <Youtube className="w-5 h-5" />
               </a>
             </div>
+          </div>
+        </div>
+
+        {/* Privacy & Legal Section (DPDP Act, 2023 Compliance) */}
+        <div className="pt-8 pb-4 border-b border-warm-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider text-golden-yellow">
+              {t('footer.privacyLegal')}
+            </span>
+            <span className="hidden sm:inline text-warm-white/40">|</span>
+            <span className="hidden sm:inline text-warm-white/60 text-[11px]">
+              DPDP Act, 2023 Compliant
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-warm-white/75 font-medium">
+            <Link href="/privacy-notice" className="hover:text-golden-yellow transition-colors">
+              • {t('footer.privacyNotice')}
+            </Link>
+            <button
+              type="button"
+              onClick={openPreferences}
+              className="hover:text-golden-yellow transition-colors cursor-pointer inline-flex items-center"
+            >
+              • {t('footer.cookiePreferences')}
+            </button>
+            <Link href="/privacy-centre" className="hover:text-golden-yellow transition-colors">
+              • {t('footer.privacyCentre')}
+            </Link>
+            <Link href="/terms" className="hover:text-golden-yellow transition-colors">
+              • {t('footer.terms')}
+            </Link>
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   MapPin,
   Phone,
@@ -33,19 +34,33 @@ export default function ContactSection({ showReservation = true }: ContactSectio
     timeSlot: '',
     specialRequests: '',
   });
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [consentError, setConsentError] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!consentGiven) {
+      setConsentError(true);
+      return;
+    }
+
     setIsSubmitting(true);
+    setConsentError(false);
 
     const apiUrl = API_BASE_URL;
     try {
       const res = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resForm),
+        body: JSON.stringify({
+          ...resForm,
+          dpdpConsent: true,
+          dpdpConsentTimestamp: new Date().toISOString(),
+          dpdpVersion: 'DPDP-Act-2023',
+        }),
       });
 
       if (!res.ok) {
@@ -53,6 +68,7 @@ export default function ContactSection({ showReservation = true }: ContactSectio
       }
 
       setSubmitted(true);
+      setConsentGiven(false);
       setResForm({
         name: '',
         phone: '',
@@ -67,6 +83,7 @@ export default function ContactSection({ showReservation = true }: ContactSectio
       console.warn('Backend API request error, preserving user feedback:', err);
       // Fallback: show submitted confirmation so user experience is smooth even during offline testing
       setSubmitted(true);
+      setConsentGiven(false);
       setTimeout(() => setSubmitted(false), 8000);
     } finally {
       setIsSubmitting(false);
@@ -338,6 +355,39 @@ export default function ContactSection({ showReservation = true }: ContactSectio
                         onChange={(e) => setResForm({ ...resForm, specialRequests: e.target.value })}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-cream/50 border border-deep-green/15 focus:border-restaurant-green focus:outline-none text-xs text-deep-green"
                       />
+                    </div>
+
+                    {/* DPDP Act 2023 Consent Checkbox */}
+                    <div className="pt-1 space-y-1">
+                      <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                        <input
+                          type="checkbox"
+                          required
+                          checked={consentGiven}
+                          onChange={(e) => {
+                            setConsentGiven(e.target.checked);
+                            if (consentError) setConsentError(false);
+                          }}
+                          className="mt-0.5 w-4 h-4 rounded text-restaurant-green border-deep-green/30 focus:ring-restaurant-green accent-restaurant-green cursor-pointer shrink-0"
+                        />
+                        <span className="text-xs text-deep-green/85 leading-relaxed group-hover:text-deep-green transition-colors">
+                          {t('contact.dpdpConsentPrefix')}{' '}
+                          <Link
+                            href="/privacy-notice"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-restaurant-green underline hover:text-leaf-green"
+                          >
+                            {t('footer.privacyNotice')}
+                          </Link>
+                          {t('contact.dpdpConsentSuffix')} <span className="text-red-500 font-bold">*</span>
+                        </span>
+                      </label>
+                      {consentError && (
+                        <p className="text-[11px] text-red-600 font-semibold pl-6.5">
+                          {t('contact.dpdpConsentRequired')}
+                        </p>
+                      )}
                     </div>
 
                     <button
