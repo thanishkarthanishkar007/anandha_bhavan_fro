@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from database import get_settings_collection
+from services.cache_service import cache
 
 router = APIRouter(prefix="/api/settings", tags=["Restaurant Settings"])
 
@@ -34,13 +35,20 @@ SETTINGS_DOC_ID = "global_restaurant_settings"
 @router.get("")
 def get_restaurant_settings():
     try:
+        cached_settings = cache.get("settings")
+        if cached_settings is not None:
+            return cached_settings
+
         col = get_settings_collection()
         doc = col.find_one({"_id": SETTINGS_DOC_ID})
         if not doc:
             # Fallback default
             default_model = RestaurantSettingsModel()
-            return default_model.model_dump()
-        doc["_id"] = str(doc["_id"])
+            doc = default_model.model_dump()
+        else:
+            doc["_id"] = str(doc["_id"])
+
+        cache.set("settings", doc, ttl_seconds=300)
         return doc
     except Exception as e:
         raise HTTPException(
@@ -61,6 +69,9 @@ def update_restaurant_settings(payload: Dict[str, Any]):
         )
         updated_doc = col.find_one({"_id": SETTINGS_DOC_ID})
         updated_doc["_id"] = str(updated_doc["_id"])
+
+        # Immediately invalidate cache
+        cache.invalidate("settings")
         return {"success": True, "settings": updated_doc}
     except Exception as e:
         raise HTTPException(

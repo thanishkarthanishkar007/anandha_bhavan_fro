@@ -92,12 +92,25 @@ export function ReservationsProvider({ children }: { children: React.ReactNode }
 
     fetchReservations();
 
-    // Poll every 15 seconds to automatically pick up new reservations submitted by customers
+    // Smart polling: poll every 20s only when the tab is actively visible to save bandwidth
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return;
+      }
       fetchReservations();
-    }, 15000);
+    }, 20000);
 
-    return () => clearInterval(interval);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchReservations();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [fetchReservations]);
 
   const saveToStorage = (items: Reservation[]) => {

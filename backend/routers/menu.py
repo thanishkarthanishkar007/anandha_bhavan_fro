@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 
 from database import get_menu_collection
+from services.cache_service import cache
 
 router = APIRouter(prefix="/api/menu", tags=["Menu Items"])
 
@@ -31,8 +32,19 @@ def _get_item_filter(item_id: str) -> dict:
     return {"id": item_id}
 
 @router.get("")
-def list_menu_items(category: Optional[str] = None, search: Optional[str] = None):
+def list_menu_items(
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    response: Optional[Any] = None
+):
     try:
+        # Check cache if not performing free-text search
+        cache_key = f"menu:{category or 'all'}" if not search else None
+        if cache_key:
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return cached_data
+
         col = get_menu_collection()
         query = {}
         if category and category != "All":
@@ -50,7 +62,14 @@ def list_menu_items(category: Optional[str] = None, search: Optional[str] = None
             if "id" not in d or not d["id"]:
                 d["id"] = d["_id"]
             items.append(d)
-        return {"total": len(items), "items": items}
+
+        result = {"total": len(items), "items": items}
+
+        # Cache catalog responses for 120 seconds
+        if cache_key:
+            cache.set(cache_key, result, ttl_seconds=120)
+
+        return result
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -66,6 +85,9 @@ def create_menu_item(item: MenuItemModel):
             doc["id"] = f"dish-{ObjectId()}"
         result = col.insert_one(doc)
         doc["_id"] = str(result.inserted_id)
+
+        # Invalidate menu cache immediately
+        cache.invalidate("menu")
         return {"success": True, "item": doc}
     except Exception as e:
         raise HTTPException(
@@ -89,6 +111,9 @@ def update_menu_item(item_id: str, payload: Dict[str, Any]):
             updated["_id"] = str(updated["_id"])
             if "id" not in updated:
                 updated["id"] = updated["_id"]
+
+        # Invalidate menu cache immediately
+        cache.invalidate("menu")
         return {"success": True, "item": updated}
     except Exception as e:
         raise HTTPException(
@@ -104,6 +129,9 @@ def update_menu_item_stock(item_id: str, payload: StockToggleRequest):
         res = col.update_one(query, {"$set": {"inStock": payload.inStock}})
         if res.matched_count == 0:
             raise HTTPException(status_code=404, detail="Menu item not found.")
+
+        # Invalidate menu cache immediately
+        cache.invalidate("menu")
         return {"success": True, "id": item_id, "inStock": payload.inStock}
     except Exception as e:
         raise HTTPException(
@@ -119,6 +147,9 @@ def delete_menu_item(item_id: str):
         res = col.delete_one(query)
         if res.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Menu item not found.")
+
+        # Invalidate menu cache immediately
+        cache.invalidate("menu")
         return {"success": True, "id": item_id, "deleted": True}
     except Exception as e:
         raise HTTPException(

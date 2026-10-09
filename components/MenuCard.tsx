@@ -12,7 +12,7 @@ interface MenuCardProps {
   onQuickOrder?: (item: MenuItem) => void;
 }
 
-export default function MenuCard({ item }: MenuCardProps) {
+function MenuCard({ item }: MenuCardProps) {
   const { t, tItem, tCategory } = useLanguage();
   const { stockStatus } = useMenu();
   const [showModal, setShowModal] = useState(false);
@@ -267,3 +267,6 @@ export default function MenuCard({ item }: MenuCardProps) {
     </>
   );
 }
+
+const MemoizedMenuCard = React.memo(MenuCard);
+export default MemoizedMenuCard;

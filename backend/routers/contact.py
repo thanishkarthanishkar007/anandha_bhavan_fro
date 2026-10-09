@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status
+import logging
+from fastapi import APIRouter, HTTPException, BackgroundTasks, status
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
 from database import get_contact_collection, get_reservations_collection
 from services.email_service import send_contact_notification
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/contact", tags=["Contact & Enquiries"])
 
@@ -31,13 +34,48 @@ class ContactSubmissionResponse(BaseModel):
     resend_id: Optional[str] = None
     created_at: str
 
+def _send_contact_email_bg(
+    submission_id: str,
+    name: str,
+    phone: str,
+    email: str,
+    guests: str,
+    date: str,
+    time_slot: str,
+    special_requests: str
+):
+    try:
+        email_result = send_contact_notification(
+            name=name,
+            phone=phone,
+            email=email,
+            guests=guests,
+            date=date,
+            time_slot=time_slot,
+            special_requests=special_requests,
+            submission_id=submission_id
+        )
+        col = get_contact_collection()
+        col.update_one(
+            {"_id": ObjectId(submission_id)},
+            {
+                "$set": {
+                    "email_status": email_result.get("status", "sent"),
+                    "resend_id": email_result.get("resend_id"),
+                    "email_error": email_result.get("error")
+                }
+            }
+        )
+    except Exception as e:
+        logger.error(f"Background email dispatch error for submission {submission_id}: {e}")
+
 @router.post("", response_model=ContactSubmissionResponse, status_code=status.HTTP_201_CREATED)
-def submit_contact_form(payload: ContactSubmissionRequest):
+def submit_contact_form(payload: ContactSubmissionRequest, background_tasks: BackgroundTasks):
     """
     Submits a contact / table booking inquiry:
-    1. Persists the inquiry into MongoDB Atlas collection 'contact_submissions'.
-    2. Sends a formatted notification email to srenewaanandabavan@gmail.com via Resend API.
-    3. Records email delivery status in MongoDB.
+    1. Prevents duplicate submissions within 30 seconds.
+    2. Persists the inquiry into MongoDB Atlas collection 'contact_submissions'.
+    3. Asynchronously sends notification email via Resend API in background (non-blocking).
     """
     try:
         col = get_contact_collection()
@@ -46,6 +84,27 @@ def submit_contact_form(payload: ContactSubmissionRequest):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Database connection error: {str(e)}"
         )
+
+    # Idempotency: Prevent duplicate submissions within 30s
+    try:
+        recent_dup = col.find_one({
+            "email": payload.email.strip().lower(),
+            "phone": payload.phone.strip(),
+            "date": payload.date.strip()
+        }, sort=[("created_at", -1)])
+        if recent_dup and "created_at" in recent_dup:
+            prev_time = datetime.fromisoformat(recent_dup["created_at"])
+            if (datetime.now(timezone.utc) - prev_time).total_seconds() < 30:
+                return ContactSubmissionResponse(
+                    success=True,
+                    id=str(recent_dup["_id"]),
+                    message="Thank you! Your enquiry has already been received.",
+                    email_status=recent_dup.get("email_status", "queued"),
+                    resend_id=recent_dup.get("resend_id"),
+                    created_at=recent_dup["created_at"]
+                )
+    except Exception:
+        pass
 
     # Normalize fields
     session_time = payload.timeSlot or payload.time_slot or ""
@@ -64,7 +123,7 @@ def submit_contact_form(payload: ContactSubmissionRequest):
         "dpdp_consent_timestamp": payload.dpdpConsentTimestamp or now_iso,
         "dpdp_version": payload.dpdpVersion or "DPDP-Act-2023",
         "created_at": now_iso,
-        "email_status": "pending",
+        "email_status": "queued",
         "resend_id": None,
         "status": "new"
     }
@@ -106,40 +165,25 @@ def submit_contact_form(payload: ContactSubmissionRequest):
             detail=f"Failed to save inquiry to MongoDB Atlas: {str(e)}"
         )
 
-    # 2. Dispatch Email via Resend API
-    email_result = send_contact_notification(
+    # 2. Dispatch Email Asynchronously via BackgroundTasks (non-blocking)
+    background_tasks.add_task(
+        _send_contact_email_bg,
+        submission_id=submission_id,
         name=doc["name"],
         phone=doc["phone"],
         email=doc["email"],
         guests=doc["guests"],
         date=doc["date"],
         time_slot=doc["time_slot"],
-        special_requests=doc["special_requests"],
-        submission_id=submission_id
+        special_requests=doc["special_requests"]
     )
-
-    # 3. Update status in MongoDB
-    try:
-        col.update_one(
-            {"_id": insert_result.inserted_id},
-            {
-                "$set": {
-                    "email_status": email_result["status"],
-                    "resend_id": email_result["resend_id"],
-                    "email_error": email_result.get("error")
-                }
-            }
-        )
-    except Exception as e:
-        # Log but do not block the response
-        pass
 
     return ContactSubmissionResponse(
         success=True,
         id=submission_id,
-        message="Thank you! Your enquiry has been received and our team has been notified via email.",
-        email_status=email_result["status"],
-        resend_id=email_result["resend_id"],
+        message="Thank you! Your enquiry has been received and our team has been notified.",
+        email_status="queued",
+        resend_id=None,
         created_at=now_iso
     )
 

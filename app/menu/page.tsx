@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
@@ -12,11 +12,20 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useMenu } from '@/context/MenuContext';
 import { Search, Sparkles, Leaf, ShieldCheck, Heart, Clock } from 'lucide-react';
 
+const INITIAL_BATCH_SIZE = 24;
+
 export default function MenuPage() {
   const { t, tCategory, language } = useLanguage();
   const { menuItems } = useMenu();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [displayLimit, setDisplayLimit] = useState<number>(INITIAL_BATCH_SIZE);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset display limit when category or search changes
+  useEffect(() => {
+    setDisplayLimit(INITIAL_BATCH_SIZE);
+  }, [activeCategory, searchQuery]);
 
   const filteredItems = useMemo(() => {
     return menuItems.filter((item) => {
@@ -38,6 +47,28 @@ export default function MenuPage() {
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
+
+  const visibleItems = useMemo(() => {
+    if (activeCategory !== 'All' || searchQuery.trim()) {
+      return filteredItems;
+    }
+    return filteredItems.slice(0, displayLimit);
+  }, [filteredItems, activeCategory, searchQuery, displayLimit]);
+
+  // Infinite scroll intersection observer for high performance
+  useEffect(() => {
+    if (!observerRef.current || visibleItems.length >= filteredItems.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayLimit((prev) => Math.min(prev + 24, filteredItems.length));
+        }
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(observerRef.current);
+    return () => observer.disconnect();
+  }, [visibleItems.length, filteredItems.length]);
 
   return (
     <div className="min-h-screen bg-warm-white text-deep-green flex flex-col">
@@ -153,11 +184,26 @@ export default function MenuPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {filteredItems.map((item) => (
-                  <MenuCard key={item.id} item={item} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                  {visibleItems.map((item) => (
+                    <MenuCard key={item.id} item={item} />
+                  ))}
+                </div>
+
+                {visibleItems.length < filteredItems.length && (
+                  <div ref={observerRef} className="mt-12 text-center py-6">
+                    <button
+                      onClick={() => setDisplayLimit((prev) => Math.min(prev + 24, filteredItems.length))}
+                      className="px-6 py-2.5 rounded-full bg-cream hover:bg-restaurant-green text-deep-green hover:text-warm-white border border-restaurant-green/30 text-xs font-bold transition-all shadow-sm"
+                    >
+                      {language === 'ta'
+                        ? `மேலும் உணவுகளைக் காட்டு (${filteredItems.length - visibleItems.length} மீதம்)`
+                        : `Load More Delicacies (${filteredItems.length - visibleItems.length} remaining)`}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

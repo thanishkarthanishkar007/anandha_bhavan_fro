@@ -87,6 +87,9 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+from fastapi.middleware.gzip import GZipMiddleware
+from services.rate_limiter import RateLimitMiddleware
+
 # CORS Configuration for Live Website, Vercel Previews, and Admin Panel
 app.add_middleware(
     CORSMiddleware,
@@ -96,6 +99,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compression: compress all responses > 1000 bytes with gzip
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Rate Limiter & Abuse Prevention: token bucket per client IP
+app.add_middleware(RateLimitMiddleware)
 
 # Mount Routers
 app.include_router(auth.router)

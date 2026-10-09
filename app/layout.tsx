@@ -205,6 +205,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={outfit.variable}>
       <head>
+        <link rel="dns-prefetch" href="https://aanandbavan-backend.onrender.com" />
+        <link rel="preconnect" href="https://aanandbavan-backend.onrender.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.google.com" />
         <link
           rel="preload"
           as="image"
