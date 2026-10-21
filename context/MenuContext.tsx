@@ -15,7 +15,7 @@ interface MenuContextType {
 }
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
-const STORAGE_KEY_ITEMS = 'sre_admin_custom_menu_items_v15';
+const STORAGE_KEY_ITEMS = 'sre_admin_custom_menu_items_v16';
 const STORAGE_KEY_STOCK = 'sre_admin_menu_stock_status';
 
 export function MenuProvider({ children }: { children: React.ReactNode }) {
