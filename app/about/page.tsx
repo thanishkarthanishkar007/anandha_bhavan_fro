@@ -10,12 +10,6 @@ import SectionReveal from '@/components/SectionReveal';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Leaf,
-  ShieldCheck,
-  Award,
-  Sparkles,
-  Clock,
-  Flame,
-  Heart,
   Calendar,
   Utensils,
   CheckCircle2,
@@ -24,29 +18,6 @@ import {
 
 export default function AboutPage() {
   const { t } = useLanguage();
-
-  const milestones = [
-    {
-      year: t('aboutPage.mile1.year'),
-      title: t('aboutPage.mile1.title'),
-      description: t('aboutPage.mile1.desc'),
-    },
-    {
-      year: t('aboutPage.mile2.year'),
-      title: t('aboutPage.mile2.title'),
-      description: t('aboutPage.mile2.desc'),
-    },
-    {
-      year: t('aboutPage.mile3.year'),
-      title: t('aboutPage.mile3.title'),
-      description: t('aboutPage.mile3.desc'),
-    },
-    {
-      year: t('aboutPage.mile4.year'),
-      title: t('aboutPage.mile4.title'),
-      description: t('aboutPage.mile4.desc'),
-    },
-  ];
 
   const partners = [
     {
@@ -177,65 +148,6 @@ export default function AboutPage() {
                     />
                   </div>
                 </SectionReveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Heritage Timeline */}
-        <section className="py-24 bg-warm-white relative">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionReveal className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cream border border-restaurant-green/20 text-xs font-semibold uppercase tracking-[0.25em] text-restaurant-green mb-4">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{t('aboutPage.lineageBadge')}</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-deep-green tracking-tight">
-                {t('aboutPage.lineageTitle')}
-              </h2>
-            </SectionReveal>
-
-            <div className="space-y-8 relative before:absolute before:inset-0 before:left-1/2 before:-translate-x-1/2 before:w-[2px] before:bg-deep-green/10 hidden md:block">
-              {milestones.map((m, idx) => (
-                <SectionReveal
-                  key={m.year}
-                  delay={idx * 0.1}
-                  className={`relative flex items-center justify-between ${
-                    idx % 2 === 0 ? 'flex-row-reverse text-right' : 'text-left'
-                  }`}
-                >
-                  <div className="w-[44%] bg-cream/50 p-6 rounded-3xl border border-deep-green/10 shadow-sm">
-                    <span className="text-lg font-extrabold text-restaurant-green block mb-1">
-                      {m.year}
-                    </span>
-                    <h4 className="text-base font-bold text-deep-green mb-1">{m.title}</h4>
-                    <p className="text-xs sm:text-sm text-deep-green/75 leading-relaxed">
-                      {m.description}
-                    </p>
-                  </div>
-
-                  <div className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-warm-white border-4 border-restaurant-green flex items-center justify-center shadow-md z-10">
-                    <div className="w-2 h-2 rounded-full bg-golden-yellow" />
-                  </div>
-
-                  <div className="w-[44%]" />
-                </SectionReveal>
-              ))}
-            </div>
-
-            {/* Mobile Timeline View */}
-            <div className="md:hidden space-y-4">
-              {milestones.map((m) => (
-                <div
-                  key={m.year}
-                  className="bg-cream/50 p-6 rounded-2xl border-l-4 border-restaurant-green border border-deep-green/10"
-                >
-                  <span className="text-sm font-extrabold text-restaurant-green block mb-1">
-                    {m.year}
-                  </span>
-                  <h4 className="text-base font-bold text-deep-green mb-1">{m.title}</h4>
-                  <p className="text-xs text-deep-green/75 leading-relaxed">{m.description}</p>
-                </div>
               ))}
             </div>
           </div>
