@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
@@ -10,8 +9,6 @@ import SectionReveal from '@/components/SectionReveal';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Leaf,
-  Calendar,
-  Utensils,
   CheckCircle2,
   Users,
 } from 'lucide-react';
@@ -150,36 +147,6 @@ export default function AboutPage() {
                 </SectionReveal>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* CTA Invitation */}
-        <section className="py-20 bg-cream/40 border-t border-deep-green/10 text-center">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <SectionReveal className="space-y-6">
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-deep-green tracking-tight">
-                {t('aboutPage.ctaTitle')}
-              </h3>
-              <p className="text-sm sm:text-base text-deep-green/80 max-w-xl mx-auto">
-                {t('aboutPage.ctaDesc')}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-restaurant-green hover:bg-leaf-green text-warm-white font-bold text-sm tracking-wide shadow-premium hover:shadow-premium-hover transition-all duration-300"
-                >
-                  <Calendar className="w-4 h-4 text-golden-yellow" />
-                  <span>{t('hero.reserveTable')}</span>
-                </Link>
-                <Link
-                  href="/menu"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-warm-white hover:bg-cream border border-deep-green/20 text-deep-green font-bold text-sm tracking-wide shadow-sm transition-all duration-300"
-                >
-                  <Utensils className="w-4 h-4 text-restaurant-green" />
-                  <span>{t('nav.menu')}</span>
-                </Link>
-              </div>
-            </SectionReveal>
           </div>
         </section>
       </main>
