@@ -1137,6 +1137,22 @@ export const TRANSLATIONS: Translations = {
     en: 'Every recipe follows rigorous gastronomic standards to ensure unparalleled freshness and pure vegetarian integrity.',
     ta: 'ஒவ்வொரு செய்முறையும் கடுமையான தூய்மை நெறிமுறைகளுடன் புத்தம் புதியதாக தயாரிக்கப்படுகிறது.',
   },
+  'aboutPage.partnersBadge': {
+    en: 'LEADERSHIP & VISION',
+    ta: 'தலைமை மற்றும் தொலைநோக்கு',
+  },
+  'aboutPage.partnersTitle': {
+    en: 'OUR PARTNERS',
+    ta: 'எங்கள் பங்குதாரர்கள்',
+  },
+  'aboutPage.partnersDesc': {
+    en: 'The visionary leadership guiding Sre New Aananda Bavan with devotion to authentic taste, uncompromising quality, and warm hospitality.',
+    ta: 'பாரம்பரிய சுவை, தூய தரம் மற்றும் விருந்தோம்பலுடன் ஸ்ரீ நியூ ஆனந்த பவனை வழிநடத்தும் எங்கள் பங்குதாரர்கள்.',
+  },
+  'aboutPage.partnerRole': {
+    en: 'Partner',
+    ta: 'பங்குதாரர்',
+  },
   'aboutPage.lineageBadge': {
     en: 'Five Decades of Mastery',
     ta: 'ஐந்து தசாப்த கால பாரம்பரியம்',
