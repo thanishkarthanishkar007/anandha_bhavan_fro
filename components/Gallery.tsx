@@ -65,24 +65,45 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     captionTa: 'ஒளிவீசும் பணப்பரிவர்த்தனை கவுண்ட்டர், மர ஜன்னல் திரைச்சீலைகள் மற்றும் அமைதியான உணவக சூழல்.',
   },
   {
-    id: 'g-interior-reception-dining',
-    title: 'Royal Dining Sanctuary & Reception',
-    titleTa: 'வரவேற்பறை & நவீன உணவக அரங்கம்',
+    id: 'g-interior-dining-hall',
+    title: 'Sunlit Grand Dining Hall & Highway View',
+    titleTa: 'விசாலமான முதன்மை உணவக அரங்கம்',
     category: 'Interior & Dining',
-    image: '/images/gallery/aananda-bavan-interior-reception-dining.jpg',
+    image: '/images/gallery/aananda-bavan-interior-dining-hall.jpg',
     aspectRatioClass: 'aspect-[16/9]',
-    caption: 'Contemporary dining hall interior featuring artisanal cane lighting, comfortable wood seating, and curated hospitality counter.',
-    captionTa: 'அழகிய மூங்கில் வேலைப்பாடு விளக்குகள், மர நாற்காலிகள் மற்றும் நேர்த்தியான வரவேற்பறையுடன் கூடிய நவீன சைவ உணவக அரங்கம்.',
+    caption: 'Spacious family dining hall featuring polished wooden seating, soothing green accents, and large sunlit panoramic glass windows.',
+    captionTa: 'இயற்கை வெளிச்சம் தரும் கண்ணாடி ஜன்னல்கள், மர நாற்காலிகள் மற்றும் நேர்த்தியான அமைதியான உணவக அரங்கம்.',
   },
   {
-    id: 'g-interior-day-dining',
-    title: 'Artisanal Dining Hall & Kitchen Promenade',
-    titleTa: 'இயற்கை வெளிச்சம் கொண்ட உணவக கூடம்',
+    id: 'g-interior-heritage-booth-dining',
+    title: 'Royal Heritage Lounge & Booth Dining',
+    titleTa: 'பாரம்பரிய சுவரோவிய பூத் இருக்கை அரங்கம்',
     category: 'Interior & Dining',
-    image: '/images/gallery/aananda-bavan-interior-day-dining.jpg',
+    image: '/images/gallery/aananda-bavan-interior-heritage-booth-dining.jpg',
     aspectRatioClass: 'aspect-[16/9]',
-    caption: 'Sunlit dining hall with botanical wall art, heritage tile borders, spacious tables, and direct view toward the kitchen entrance.',
-    captionTa: 'இயற்கை வெளிச்சம், மூலிகை ஓவியங்கள், பாரம்பரிய தரை வடிவமைப்பு மற்றும் தூய சமையலறை முகப்புடன் கூடிய உணவக கூடம்.',
+    caption: 'Luxurious booth seating dining area adorned with magnificent traditional carved stone relief mural and expansive glass views.',
+    captionTa: 'பிரம்மாண்ட பாரம்பரிய கற்சிற்ப சுவரோவியம், சொகுசு பூத் இருக்கைகள் மற்றும் வெளிப்பார்வை கொண்ட சிறப்பு உணவருந்தும் பகுதி.',
+  },
+  {
+    id: 'g-interior-90s-candy',
+    title: '90s Nostalgia Candy & Sweets Pavilion',
+    titleTa: '90ஸ் மிட்டாய் & பாரம்பரிய இனிப்புகள் அரங்கம்',
+    category: 'Interior & Dining',
+    image: '/images/gallery/aananda-bavan-interior-90s-candy.jpg',
+    aspectRatioClass: 'aspect-[16/9]',
+    caption: 'Charming illuminated 90s Candy stall featuring vibrant hanging lamps, nostalgic sweets, and traditional confectionery inside the dining promenade.',
+    captionTa: 'உணவக வளாகத்தில் ஒளிரும் வண்ண விளக்குகள் மற்றும் பாரம்பரிய மிட்டாய்களுடன் கூடிய 90ஸ் மிட்டாய் அரங்கம்.',
+  },
+  {
+    id: 'g-exterior-highway-cafeteria',
+    title: 'Highway Promenade & 24/7 Cafeteria Facade',
+    titleTa: 'நெடுஞ்சாலை வளாகம் & 24/7 கஃபேடீரியா முகப்பு',
+    category: 'Architecture & Exterior',
+    secondaryCategory: 'Interior & Dining',
+    image: '/images/gallery/aananda-bavan-exterior-highway-cafeteria.jpg',
+    aspectRatioClass: 'aspect-[16/9]',
+    caption: 'Panoramic daytime exterior showcasing Sre New Aananda Bavan, 24/7 cafeteria, Happy Toys, and highway frontage on NH 44.',
+    captionTa: 'NH 44 நெடுஞ்சாலையில் அமைந்துள்ள ஸ்ரீ நியூ ஆனந்த பவன், 24/7 கஃபேடீரியா மற்றும் வாகன நிறுத்துமிடத்துடன் கூடிய பகல் நேரத் தோற்றம்.',
   },
   {
     id: 'g-interior-night-panoramic',
@@ -133,8 +154,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 const PREVIEW_ITEMS: GalleryItem[] = [
   GALLERY_ITEMS[0], // Grand Architectural Elevation
   GALLERY_ITEMS[1], // Sre New Aananda Bavan Sanctuary Front
-  GALLERY_ITEMS[4], // Royal Dining Sanctuary & Reception
-  GALLERY_ITEMS[9], // Nocturnal Heritage Splendour
+  GALLERY_ITEMS[4], // Sunlit Grand Dining Hall & Highway View
+  GALLERY_ITEMS[11], // Nocturnal Heritage Splendour
 ];
 
 const CATEGORIES = ['All', 'Architecture & Exterior', 'Interior & Dining', 'Night & Twilight'] as const;
